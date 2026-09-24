@@ -25,8 +25,22 @@ Deploy the contents of `dist/` to any static host. The included server is a loca
 - Site structure, supplied vision/mission and institutional information: `index.html`.
 - Events, gallery metadata, office bearers and interactive behavior: `app.js`.
 - Original SVG visual studies: `assets/`. These are explicitly labeled artistic placeholders, not documentary club photographs.
+- The hero and Music section use supplied singer and drummer photographs. The gallery includes all three solo performers, two Euphony performance photos and the official Euphony poster, with full-image lightbox viewing. Dance and Fine Arts retain labeled visual studies.
+- The navigation logo uses a padded circular white frame with gold rings; the entire source logo remains visible.
 - Fonts use Google Fonts with local serif/sans-serif fallbacks; the site remains usable without that service.
 - Native dialog lightbox supports Escape, arrow keys, focus containment and return focus. Event tabs support arrow keys; the mobile menu supports Escape and keyboard cycling.
+
+## Interaction polish
+
+`experience.css` and `experience.js` add a progressive interaction layer without changing the supplied assets or section order. The hero entrance lasts under 1.5 seconds, runs once per browser tab session, and cancels on pointer, wheel or keyboard interaction. Tiny pointer/scroll offsets affect the hero. The three disciplines support mouse hover, keyboard focus, explicit tap buttons and mobile scroll activation, with distinct colour and line treatments.
+
+The existing Euphoria event becomes a poster spotlight; gallery filters and the native lightbox gain short transitions and touch swiping. Photography uses one-time curtain reveals. The philosophy words move a few pixels and change accent colours as they enter the viewport. Navigation, selected buttons and team portraits have restrained micro-interactions. A footer motion control supplements the operating system's reduced-motion preference.
+
+Scroll updates are requestAnimationFrame-coalesced and limited to visible hero/philosophy sections. There is no perpetual JavaScript animation loop, scroll interception or animation dependency. Existing lazy loading is preserved, and event image dimensions reserve space before loading. The original full-resolution image files are preserved; generating smaller responsive image derivatives remains a future asset optimization.
+
+Custom cursors, pinned horizontal scrolling and infinite marquees were intentionally omitted to keep native interaction and avoid competing with the photography. There are no route/page transitions because this is a single-page anchor-based site.
+
+Browser verification: run `node quality-check.mjs` with Node.js 22+ and a local Chrome debugging session on port 9222, while the preview runs on port 5173. The checks cover 320/390/768/1440px layouts, anchor destinations, event tabs, spotlight rerenders, discipline focus/tap, native dialog focus return/Escape, keyboard image navigation, real emulated touch swipes, all image decoding, reduced motion, session intro suppression/skip, console errors and layout-shift metrics. Screenshots are ignored by Git. These are local Chromium checks, not a cross-browser or physical-device performance certification.
 
 ## Awaiting supplied content
 

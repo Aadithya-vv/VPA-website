@@ -20,13 +20,13 @@ console.log('Interactions', await evaluate(`(() => {
   document.querySelector('#past-tab').click();
   const past = document.querySelectorAll('.event-card').length === 3;
   document.querySelector('[data-filter="Events"]').click();
-  const empty = !!document.querySelector('.empty-gallery');
+  const events = document.querySelectorAll('.gallery-item').length === 4;
   document.querySelector('[data-filter="Music"]').click();
-  const filter = document.querySelectorAll('.gallery-item').length === 1;
+  const filter = document.querySelectorAll('.gallery-item').length === 3;
   document.querySelector('.gallery-item').click();
   const dialog = document.querySelector('#lightbox').open;
   document.querySelector('.dialog-close').click();
-  return { past, empty, filter, dialog, closed: !document.querySelector('#lightbox').open };
+  return { past, events, filter, dialog, closed: !document.querySelector('#lightbox').open };
 })()`));
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
 console.log('Mobile menu', await evaluate(`(() => { document.querySelector('.menu-toggle').click(); const open = document.querySelector('#navigation').classList.contains('open'); document.querySelector('#navigation a').click(); return { open, closed: !document.querySelector('#navigation').classList.contains('open') }; })()`));

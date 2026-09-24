@@ -14,22 +14,34 @@ document.addEventListener('keydown', (event) => {
   }
 });
 matchMedia('(min-width: 701px)').addEventListener('change', (event) => { if (event.matches) closeMenu(); });
-const eventData = {
-  upcoming: [
-    { title: "EUPHORIA’26", image: 'assets/euphoria.jpeg', imageAlt: 'Euphoria 2026 official poster: 25 September 2026, with technical and cultural events at Meenakshi Sundararajan Engineering College', type: 'MUSIC + DANCE', detail: '25 September 2026 · Internal and external.', label: 'THE STAGE IS CALLING', style: '' },
-    { title: "EUPHORIA’26 — Intra College", image: 'assets/eupdoria%20intra.jpeg', imageAlt: 'Euphoria 2026 intra-college cultural fest poster: 26 September 2026, featuring dance, vocal and instrumental events', type: 'MUSIC + DANCE / INTRA COLLEGE', detail: '26 September 2026 · Intra-college cultural fest · Dance, vocal and instrumental.', label: 'SAME CAMPUS / SAME SPIRIT', style: '' },
-    { title: 'Creative workshops', poster: 'Learn. Make.', sub: 'Repeat.', type: 'ART / SOUND / DANCE', detail: 'Art workshops · Sound engineering workshops · Dance workshops', label: 'EXPLORE SOMETHING NEW', style: 'workshop' }
-  ],
-  past: [
-    { title: 'VPA Club Inauguration', image: 'assets/VPA_inaugration.jpg', imageAlt: 'Group photograph on stage at the VPA Club Inauguration', type: 'GENERAL', detail: 'A moment from the VPA Club Inauguration · Date not supplied.', label: 'VPA / CLUB INAUGURATION', style: 'workshop' },
-    { title: "EUPHONY’26", poster: 'Euphony', sub: '’26', type: 'CULTURALS', detail: 'Freshers SIP Culturals · Event photographs to be added.', label: 'FRESHERS SIP CULTURALS', style: '' },
-    { title: 'SKETCHORA', poster: 'Sketch', sub: 'your world.', type: 'FINE ARTS', detail: "Part of Euphoria’26 · Event photographs to be added.", label: 'SKETCHORA / FINE ARTS', style: 'workshop' }
-  ]
-};
+const managed = window.VPA_CONTENT;
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+const previewMode = location.pathname.startsWith('/admin/preview');
+function eventURL(event) { return previewMode ? '/admin/preview/events/' + event.id : '/events/' + event.slug; }
+const eventData = { upcoming: [], past: [] };
+if (managed) managed.events.forEach(event => {
+  const image = event.poster || event.cover;
+  const mapped = { ...event.design, id: event.id, slug: event.slug, title: event.title, image: image?.url, imageAlt: image?.alt_text, width: image?.width, height: image?.height, srcset: image?.srcset, type: event.event_type || event.categories.join(' + '), detail: event.short_description, featured: event.id === managed.homepage.featured_event_id || !!event.featured, gallery: managed.gallery.some(photo => photo.event_id === event.id) };
+  eventData[event.status === 'COMPLETED' ? 'past' : 'upcoming'].push(mapped);
+});
+eventData.upcoming.sort((a,b) => Number(b.featured) - Number(a.featured));
 function renderEvents(category) {
-  document.querySelector('#event-list').innerHTML = eventData[category].map(event => `<article class="event-card">${event.image ? `<a class="event-image" href="${event.image}" target="_blank" rel="noopener" aria-label="View ${event.title} image at full size (opens in a new tab)"><img src="${event.image}" alt="${event.imageAlt}" loading="lazy" decoding="async"><span>VIEW FULL IMAGE ↗</span></a>` : `<div class="event-poster ${event.style}"><span class="eyebrow">${event.label}</span><span class="poster-star" aria-hidden="true">✳</span><p class="poster-title">${event.poster}<em>${event.sub}</em></p><span class="eyebrow">${category === 'upcoming' ? 'COMING UP / DATE TO BE ANNOUNCED' : 'PAST EVENT / DATE NOT SUPPLIED'}</span></div>`}<div class="event-meta"><span>${event.type}</span><span>${category === 'upcoming' ? 'UPCOMING' : 'COMPLETED'}</span></div><h3>${event.title}</h3><p>${event.detail}</p></article>`).join('');
+  document.querySelector('#event-list').innerHTML = eventData[category].map(event => `<article class="event-card" data-featured="${event.featured ? 'true' : 'false'}" data-event-url="${escapeHTML(eventURL(event))}">${event.image ? `<a class="event-image" href="${escapeHTML(eventURL(event))}" aria-label="Explore ${escapeHTML(event.title)}"><img src="${escapeHTML(event.image)}" alt="${escapeHTML(event.imageAlt)}" width="${event.width}" height="${event.height}" ${event.srcset ? `srcset="${escapeHTML(event.srcset)}" sizes="(max-width:700px) 88vw, 45vw"` : ''} loading="lazy" decoding="async"><span>EXPLORE EVENT ↗</span></a>` : `<div class="event-poster ${event.style === 'workshop' ? 'workshop' : ''}"><span class="eyebrow">${escapeHTML(event.label || event.type)}</span><span class="poster-star" aria-hidden="true">✳</span><p class="poster-title">${escapeHTML(event.poster || event.title)}<em>${escapeHTML(event.sub || '')}</em></p><span class="eyebrow">${category === 'upcoming' ? 'COMING UP' : 'PAST EVENT'}</span></div>`}<div class="event-meta"><span>${escapeHTML(event.type)}</span><span>${category === 'upcoming' ? 'UPCOMING' : 'COMPLETED'}</span></div><h3><a href="${escapeHTML(eventURL(event))}">${escapeHTML(event.title)}</a></h3><p>${escapeHTML(event.detail)}</p></article>`).join('') || '<p class="empty-gallery">No events to show yet. Check back for the next announcement.</p>';
   document.querySelector('#event-list').setAttribute('aria-labelledby', `${category}-tab`);
+  if (category === 'past') {
+    const cards = document.querySelectorAll('.event-card');
+    eventData.past.forEach((event, index) => {
+      if (!event.gallery) return;
+      const link = document.createElement('a');
+      link.className = 'event-gallery-link';
+      link.href = '#gallery';
+      link.textContent = `Explore ${event.title} photos ↗`;
+      link.addEventListener('click', () => filterGallery('Events'));
+      cards[index].append(link);
+    });
+  }
   document.querySelectorAll('[data-event-tab]').forEach(button => { const selected = button.dataset.eventTab === category; button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1; });
+  document.dispatchEvent(new CustomEvent('vpa:events', { detail: category }));
 }
 document.querySelectorAll('[data-event-tab]').forEach(button => {
   button.addEventListener('click', () => renderEvents(button.dataset.eventTab));
@@ -37,7 +49,13 @@ document.querySelectorAll('[data-event-tab]').forEach(button => {
 });
 renderEvents('upcoming');
 const artworks = [
-  { title: 'Resonance', category: 'Music', src: 'assets/music.svg', alt: 'Golden vinyl record encircled by cyan sound waves on deep navy' },
+  { title: 'Behind the beat', category: 'Music', src: 'assets/solodrummerjpeg.jpeg', alt: 'Solo drummer playing a drum kit under purple stage lighting', position: 'center 85%' },
+  { title: 'A voice on stage', category: 'Music', src: 'assets/solosinger.jpeg', alt: 'Singer in coral performing with a handheld microphone' },
+  { title: 'At the keys', category: 'Music', src: 'assets/solokeyboard.jpeg', alt: 'Keyboard player performing on stage' },
+  { title: 'Euphony — together on stage', category: 'Events', src: 'assets/euhpony1.jpeg', alt: 'Euphony ensemble with singer, keyboard, drums, cajon and flute', wide: true },
+  { title: 'Euphony — in rhythm', category: 'Events', src: 'assets/eudphony2.jpeg', alt: 'Euphony musicians performing under blue and purple stage lights', wide: true },
+  { title: 'Euphony — the invitation', category: 'Events', src: 'assets/euhpony3.jpeg', alt: 'Official Euphony student induction programme poster for 15 September 2026', wide: true },
+  { title: 'VPA inauguration — on stage together', category: 'Events', src: 'assets/euphonystaff.jpg', alt: 'Group photograph on stage during the VPA Club inauguration day', caption: 'VPA Club Inauguration · Inauguration day', wide: true },
   { title: 'In motion', category: 'Dance', src: 'assets/dance.svg', alt: 'Sweeping magenta ribbons and a gold circle on plum' },
   { title: 'Outside the lines', category: 'Fine arts', src: 'assets/art.svg', alt: 'Expressive coral, gold and ink colour blocks with curved cream lines' }
 ];
@@ -50,14 +68,18 @@ function showArtwork(index) {
   document.querySelector('#lightbox-image').src = artwork.src;
   document.querySelector('#lightbox-image').alt = artwork.alt;
   document.querySelector('#lightbox-title').textContent = artwork.title;
+  document.querySelector('.lightbox-info .eyebrow').textContent = artwork.src.endsWith('.svg') ? 'VPA / VISUAL STUDIES' : 'VPA / ON STAGE';
+  document.querySelector('.lightbox-info p:last-child').textContent = artwork.caption || (artwork.src.endsWith('.svg') ? 'Original artwork placeholder · club photography coming soon.' : artwork.category === 'Events' ? 'Euphony’26 · Freshers SIP Culturals' : 'Music · Visual Performance and Arts Club');
   document.querySelector('#previous-image').hidden = visibleArtworks.length < 2;
   document.querySelector('#next-image').hidden = visibleArtworks.length < 2;
+  document.dispatchEvent(new Event('vpa:photo'));
 }
 function filterGallery(category) {
   visibleArtworks = category === 'All' ? artworks : artworks.filter(artwork => artwork.category === category);
   document.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
   const grid = document.querySelector('#gallery-grid');
-  grid.innerHTML = visibleArtworks.length ? visibleArtworks.map((artwork, index) => `<button class="gallery-item" data-artwork="${index}" aria-label="View ${artwork.title}"><img src="${artwork.src}" alt="${artwork.alt}" loading="lazy"><span>${artwork.category.toUpperCase()} / ${artwork.title}<b>↗</b></span></button>`).join('') : '<p class="empty-gallery">The moments are coming.<br>Official event photographs will appear here when supplied.</p>';
+  grid.innerHTML = visibleArtworks.length ? visibleArtworks.map((artwork, index) => `<button class="gallery-item${artwork.wide ? ' gallery-wide' : ''}" data-artwork="${index}" aria-label="View ${artwork.title}"><img src="${artwork.src}" alt="${artwork.alt}" style="object-position:${artwork.position || 'center'}" loading="lazy"><span>${artwork.category.toUpperCase()} / ${artwork.title}<b>↗</b></span></button>`).join('') : '<p class="empty-gallery">The moments are coming.<br>Official event photographs will appear here when supplied.</p>';
+  document.dispatchEvent(new Event('vpa:gallery'));
 }
 document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => filterGallery(button.dataset.filter)));
 document.querySelectorAll('[data-gallery-link]').forEach(link => link.addEventListener('click', () => filterGallery(link.dataset.galleryLink)));

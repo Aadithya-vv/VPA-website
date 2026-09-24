@@ -9,6 +9,10 @@
 /* Frame the supplied phone screenshot around the portrait, excluding its UI. */
 .portrait-screenshot img{height:auto;top:-35.56%;object-fit:initial}
 .event-image{display:block;background:#eae6dd;position:relative}.event-image img{height:auto;object-fit:contain}.event-image span{display:block;padding:10px 15px;background:var(--ink);color:var(--paper);font-size:9px;letter-spacing:1.5px}.event-image:hover span{color:var(--gold)}
-.brand-logo{width:72px;height:72px;object-fit:contain;flex-shrink:0}.brand{flex-shrink:0}
+.brand-logo{width:72px;height:72px;object-fit:contain;flex-shrink:0;border-radius:50%;padding:10px;background:#fff;border:1px solid var(--gold);box-shadow:0 0 0 3px var(--ink),0 0 0 4px #dda94366;transition:box-shadow .25s}.brand{flex-shrink:0}.brand:hover .brand-logo{box-shadow:0 0 0 3px var(--ink),0 0 0 4px var(--gold)}
+.music .discipline-image img{object-position:center 85%}
+.event-gallery-link{display:inline-block;margin-top:14px;padding-bottom:4px;border-bottom:1px solid #a56e12;color:#80570e;font-size:12px}
+.gallery-grid .gallery-wide{grid-column:1/-1;height:auto;aspect-ratio:16/9;margin-top:0}.gallery-wide img{object-fit:contain}.gallery-grid .gallery-item:nth-child(n+7){height:280px}
 @media(max-width:700px){.brand-logo{width:56px;height:56px}}
+.gallery-grid .gallery-item.gallery-wide{height:auto}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}

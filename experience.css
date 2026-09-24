@@ -1,0 +1,67 @@
+/* Progressive interaction layer. Content and native navigation remain usable without it. */
+.hero-copy,.hero-composition{animation:none}
+.header nav a{position:relative}
+.header nav a:after{content:'';position:absolute;bottom:2px;left:0;width:100%;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.header nav a:hover:after,.header nav a:focus-visible:after{transform:scaleX(1)}
+.button span,.discipline-title>span,.footer-main h2>span{display:inline-block;transition:transform .25s}
+.button:hover span,.button:focus-visible span,.discipline:focus-visible .discipline-title>span{transform:translate(3px,-3px)}
+.motion-toggle{display:block;margin-top:22px;padding:9px 0;background:none;color:var(--muted);border-bottom:1px solid var(--line);font-size:11px}
+.art-forms{--discipline-accent:var(--gold);position:relative;transition:background-color .6s}
+.art-forms[data-active="Music"]{background:#09232f;--discipline-accent:#6ed5d9}
+.art-forms[data-active="Dance"]{background:#241c32;--discipline-accent:#f192be}
+.art-forms[data-active="Fine arts"]{background:#2b2324;--discipline-accent:#ffab82}
+.discipline-controls{display:flex;gap:24px;flex-wrap:wrap;margin-top:30px;border-top:1px solid var(--line);padding-top:15px}
+.discipline-controls button{padding:10px 0;background:none;color:var(--muted);border-bottom:2px solid transparent;font-size:11px;letter-spacing:1px;min-height:44px}
+.discipline-controls button[aria-pressed=true]{color:var(--discipline-accent);border-color:var(--discipline-accent)}
+.discipline-controls small{margin-right:10px;color:var(--gold)}
+.discipline{transition:translate .5s}.discipline.is-active{translate:0 -8px}
+.discipline.is-active .discipline-title h3,.discipline.is-active .discipline-title>span{color:var(--discipline-accent)}
+.discipline-title h3{transition:color .4s}.discipline-image:after{content:'';position:absolute;inset:0;border:2px solid transparent;pointer-events:none;transition:border-color .4s}
+.discipline.is-active .discipline-image:after{border-color:var(--discipline-accent)}
+.discipline-art{position:absolute;bottom:18px;left:18px;width:110px;height:38px;color:var(--discipline-accent);pointer-events:none;opacity:0;transition:opacity .3s;filter:drop-shadow(0 1px 2px #071827)}
+.discipline.is-active .discipline-art{opacity:1}.discipline-art line{transform-origin:center;transform-box:fill-box}
+.music.is-active .discipline-art line{animation:rhythm .65s ease-in-out 3 alternate}.music .discipline-art line:nth-child(2n){animation-delay:.15s}.music .discipline-art line:nth-child(3n){animation-delay:.3s}
+.dance.is-active .discipline-art path,.fine-art.is-active .discipline-art path{stroke-dasharray:240;stroke-dashoffset:240;animation:draw-stroke 1.2s ease-out forwards}
+@keyframes rhythm{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+@keyframes draw-stroke{to{stroke-dashoffset:0}}
+.stage-enter{animation:stage-curtain .85s cubic-bezier(.2,.7,.2,1) both}
+@keyframes stage-curtain{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0)}}
+.event-card.spotlight{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:5%;align-items:center;padding:clamp(22px,4vw,60px);background:var(--ink);color:var(--paper);position:relative;overflow:hidden}
+.spotlight .event-image{grid-column:2;grid-row:1;background:none;max-width:390px;justify-self:center;width:100%}
+.spotlight .event-image img{aspect-ratio:9/16}
+.spotlight-copy{grid-column:1;grid-row:1;position:relative;z-index:1}
+.spotlight-copy>.eyebrow{color:var(--gold);margin-bottom:38px}
+.spotlight-copy h3{font-size:clamp(42px,6vw,88px);line-height:1.05;letter-spacing:-2px;overflow-wrap:anywhere}
+.spotlight-copy .event-meta{color:#bac9d0;margin:28px 0 20px;flex-wrap:wrap}
+.spotlight-copy>p:not(.eyebrow){color:#bac9d0;font-size:13px;line-height:1.8;margin-top:20px}
+.spotlight-copy .event-meta span:last-child{color:var(--gold)}
+.spotlight-rule{width:70px;height:2px;background:var(--gold);margin:24px 0}
+.spotlight .button{margin-top:30px}.spotlight-copy .spotlight-index{display:block;color:#59717c;font-size:10px;letter-spacing:3px;margin-top:38px}
+.gallery-item span{transition:padding .25s,background-color .25s}.gallery-item:hover span,.gallery-item:focus-visible span{padding-bottom:21px;background-color:#07182755}
+.gallery-item:focus-visible{outline-offset:4px}.gallery-item:focus-visible img{transform:scale(1.035)}
+#lightbox-image{touch-action:pan-y}
+.lightbox-info [aria-label]{min-width:44px;min-height:44px}
+.philosophy>div p{transition:color .5s;translate:var(--word-shift,0px) 0}
+.philosophy>div p:nth-child(1).active{color:var(--gold)}
+.philosophy>div p:nth-child(2).active{color:#6ed5d9}
+.philosophy>div p:nth-child(3).active{color:#f192be}
+.philosophy>div p:nth-child(4).active{color:#ffab82}
+.philosophy-slogan:before{content:'';display:block;width:90px;height:1px;background:var(--gold);margin-bottom:22px;transform:scaleX(.3);transform-origin:left;transition:transform .6s}
+.philosophy.is-resolved .philosophy-slogan:before{transform:scaleX(1)}
+.team-member .portrait{transition:box-shadow .35s}.team-member:hover .portrait{box-shadow:0 5px 0 var(--gold)}
+.team-member h3,.team-member p{transition:translate .3s}.team-member:hover h3,.team-member:hover p{translate:4px 0}
+.commitment{position:relative}.commitment:before{content:'';position:absolute;top:0;left:var(--gutter);width:80px;height:4px;background:var(--gold)}
+@media(max-width:700px){
+  .event-card.spotlight{grid-template-columns:1fr;gap:30px}.spotlight-copy{grid-column:1;grid-row:1}.spotlight .event-image{grid-column:1;grid-row:2;max-width:320px}
+  .spotlight-copy>.eyebrow{margin-bottom:22px}.spotlight-copy h3{font-size:clamp(32px,11vw,52px)}.spotlight-copy .spotlight-index{margin-top:22px}
+  .discipline-controls{gap:18px}.discipline-controls button{font-size:10px}.discipline.is-active{translate:0 -4px}
+  .gallery-item span{font-size:9px}.filters button{min-height:44px}.tabs button{min-height:44px}
+}
+@media(max-width:360px){.brand-sub{font-size:7px;padding-left:8px}.brand{gap:8px}.header{gap:12px}}
+body.motion-paused *,body.motion-paused *:before,body.motion-paused *:after{animation:none!important;transition:none!important}
+body.motion-paused .philosophy>div p{translate:0 0}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .philosophy>div p,.discipline.is-active{translate:0 0}
+  .discipline-art path{stroke-dashoffset:0!important}
+}
