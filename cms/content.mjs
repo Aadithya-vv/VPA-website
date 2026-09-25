@@ -6,7 +6,7 @@ export const text = (value, max = 500, required = false) => { if (typeof value !
 export function mediaExists(db, value, required = false) { if (!value && !required) return null; if (!db.prepare('SELECT id FROM media WHERE id=? AND deleted_at IS NULL').get(String(value))) throw fail(400, 'Choose an available photo from the media library.'); return value; }
 function eventExists(db, value) { if (!value) return null; if (!db.prepare('SELECT id FROM events WHERE id=?').get(String(value))) throw fail(400, 'Choose an existing event.'); return value; }
 export const slugify = title => title.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100) || 'event';
-function date(value) { if (!value) return null; if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || new Date(value).toISOString().slice(0, 10) !== value) throw fail(400, 'Enter a valid event date.'); return value; }
+function date(value) { if (!value) return null; const parsed = new Date(value); if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) throw fail(400, 'Enter a valid event date.'); return value; }
 export function saveEvent(db, body, eventId) {
   const previous = eventId && db.prepare('SELECT * FROM events WHERE id=?').get(eventId);
   if (eventId && !previous) throw fail(404, 'Event not found.');
@@ -29,7 +29,7 @@ export function saveEvent(db, body, eventId) {
 }
 export function validateDocument(db, name, data) {
   if (!data || typeof data !== 'object') throw fail(400, 'Invalid content.');
-  if (name === 'homepage') return { hero_media_id: mediaExists(db, data.hero_media_id, true), featured_event_id: eventExists(db, data.featured_event_id), hero_description: text(data.hero_description, 500, true) };
+  if (name === 'homepage') return { hero_media_id: mediaExists(db, data.hero_media_id, true), hero_art_media_id: mediaExists(db, data.hero_art_media_id, true), featured_event_id: eventExists(db, data.featured_event_id), hero_description: text(data.hero_description, 500, true) };
   if (name === 'art-forms') {
     if (!Array.isArray(data) || data.length !== 3) throw fail(400, 'Keep all three art forms.');
     return ['MUSIC', 'DANCE', 'FINE ARTS'].map(category => { const item = data.find(i => i.category === category); if (!item) throw fail(400, 'Keep all three art forms.'); return { category, media_id: mediaExists(db, item.media_id, true), description: text(item.description, 500, true), featured_event_id: eventExists(db, item.featured_event_id), gallery_media_ids: validateIds(item.gallery_media_ids || [], value => mediaExists(db, value, true)) }; });
@@ -88,7 +88,7 @@ export function contentSnapshot(db, preview = false) {
   const events = db.prepare(preview ? "SELECT * FROM events WHERE status!='ARCHIVED' ORDER BY created_at,id" : "SELECT * FROM events WHERE published=1 AND status IN ('UPCOMING','COMPLETED') ORDER BY created_at,id").all().map(row => ({ ...row, categories: JSON.parse(row.categories), design: JSON.parse(row.design), poster: getMedia(row.poster_id), cover: getMedia(row.cover_id) }));
   const eventIds = new Set(events.map(e => e.id));
   const gallery = db.prepare('SELECT * FROM gallery_items ORDER BY position,created_at,id').all().filter(row => (preview || row.published) && (!row.event_id || eventIds.has(row.event_id))).map(row => ({ ...row, media: getMedia(row.media_id) })).filter(row => row.media);
-  const homepage = { ...documents.homepage, hero: getMedia(documents.homepage.hero_media_id) };
+  const homepage = { ...documents.homepage, hero: getMedia(documents.homepage.hero_media_id), heroArt: getMedia(documents.homepage.hero_art_media_id) };
   const artForms = documents['art-forms'].map(row => ({ ...row, media: getMedia(row.media_id), gallery: row.gallery_media_ids.map(getMedia).filter(Boolean), featured_event: events.find(e => e.id === row.featured_event_id) || null }));
   const team = documents.team.map(row => ({ ...row, media: getMedia(row.media_id) }));
   return { events, gallery, homepage, artForms, team, content: documents.content };

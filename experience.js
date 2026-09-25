@@ -135,18 +135,18 @@
 
   // Promote the existing featured event without replacing its content or poster.
   function spotlight() {
-    const card = document.querySelector('#event-list .event-card');
-    if (!card || card.classList.contains('spotlight') || document.querySelector('#upcoming-tab').getAttribute('aria-selected') !== 'true') return;
+    const card = document.querySelector('#event-list .event-card[data-featured="true"]');
+    if (!card || !card.querySelector('.event-image') || card.classList.contains('spotlight') || document.querySelector('#upcoming-tab').getAttribute('aria-selected') !== 'true') return;
     card.classList.add('spotlight');
     const copy = document.createElement('div'); copy.className = 'spotlight-copy';
-    const kicker = document.createElement('p'); kicker.className = 'eyebrow'; kicker.textContent = 'THE EVENT SPOTLIGHT / EUPHORIA’26'; copy.append(kicker);
+    const kicker = document.createElement('p'); kicker.className = 'eyebrow'; kicker.textContent = 'THE EVENT SPOTLIGHT / '+card.querySelector('h3').textContent; copy.append(kicker);
     const title = card.querySelector('h3');
     const titleParts = title.textContent.split('’');
     if (titleParts.length === 2) { title.replaceChildren(document.createTextNode(titleParts[0]), document.createElement('br')); const year = document.createElement('em'); year.textContent = `’${titleParts[1]}`; title.append(year); }
     copy.append(title);
     const rule = document.createElement('div'); rule.className = 'spotlight-rule'; rule.setAttribute('aria-hidden', 'true'); copy.append(rule);
     copy.append(card.querySelector('.event-meta'), card.querySelector(':scope>p'));
-    const link = document.createElement('a'); link.className = 'button'; link.href = card.querySelector('.event-image').href; link.target = '_blank'; link.rel = 'noopener'; link.setAttribute('aria-label', 'Explore Euphoria event poster (opens in a new tab)'); link.innerHTML = 'Explore event <span>↗</span>'; copy.append(link);
+    const link = document.createElement('a'); link.className = 'button'; link.href = card.dataset.eventUrl; link.setAttribute('aria-label', 'Explore '+title.textContent); link.innerHTML = 'Explore event <span>↗</span>'; copy.append(link);
     const note = document.createElement('span'); note.className = 'spotlight-index'; note.textContent = 'PLAY. PERFORM. CONNECT.'; copy.append(note); card.append(copy);
     revealObserver.observe(card.querySelector('.event-image'));
   }

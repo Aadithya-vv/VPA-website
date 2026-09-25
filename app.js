@@ -48,21 +48,15 @@ document.querySelectorAll('[data-event-tab]').forEach(button => {
   button.addEventListener('keydown', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) { event.preventDefault(); const category = event.key === 'Home' ? 'upcoming' : event.key === 'End' ? 'past' : button.dataset.eventTab === 'upcoming' ? 'past' : 'upcoming'; renderEvents(category); document.querySelector(`#${category}-tab`).focus(); } });
 });
 renderEvents('upcoming');
-const artworks = [
-  { title: 'Behind the beat', category: 'Music', src: 'assets/solodrummerjpeg.jpeg', alt: 'Solo drummer playing a drum kit under purple stage lighting', position: 'center 85%' },
-  { title: 'A voice on stage', category: 'Music', src: 'assets/solosinger.jpeg', alt: 'Singer in coral performing with a handheld microphone' },
-  { title: 'At the keys', category: 'Music', src: 'assets/solokeyboard.jpeg', alt: 'Keyboard player performing on stage' },
-  { title: 'Euphony — together on stage', category: 'Events', src: 'assets/euhpony1.jpeg', alt: 'Euphony ensemble with singer, keyboard, drums, cajon and flute', wide: true },
-  { title: 'Euphony — in rhythm', category: 'Events', src: 'assets/eudphony2.jpeg', alt: 'Euphony musicians performing under blue and purple stage lights', wide: true },
-  { title: 'Euphony — the invitation', category: 'Events', src: 'assets/euhpony3.jpeg', alt: 'Official Euphony student induction programme poster for 15 September 2026', wide: true },
-  { title: 'VPA inauguration — on stage together', category: 'Events', src: 'assets/euphonystaff.jpg', alt: 'Group photograph on stage during the VPA Club inauguration day', caption: 'VPA Club Inauguration · Inauguration day', wide: true },
-  { title: 'In motion', category: 'Dance', src: 'assets/dance.svg', alt: 'Sweeping magenta ribbons and a gold circle on plum' },
-  { title: 'Outside the lines', category: 'Fine arts', src: 'assets/art.svg', alt: 'Expressive coral, gold and ink colour blocks with curved cream lines' }
-];
+const labels = {MUSIC:'Music',DANCE:'Dance','FINE ARTS':'Fine arts',EVENTS:'Events',GENERAL:'Events',TEAM:'Events'};
+const artworks = (managed?.gallery || []).map(item => ({ title:item.title, category:labels[item.category] || item.category, src:item.media.url, srcset:item.media.srcset, alt:item.media.alt_text, caption:item.caption, wide:!!item.wide, featured:!!item.featured, position:item.focal_position, mediaId:item.media_id }));
+if (managed) managed.artForms.forEach(form => form.gallery.forEach(photo => { if (!artworks.some(item=>item.mediaId===photo.id)) artworks.push({ title:photo.alt_text, category:labels[form.category], src:photo.url, srcset:photo.srcset, alt:photo.alt_text, caption:'VPA · '+labels[form.category], mediaId:photo.id }); }));
+artworks.sort((a,b)=>Number(b.featured||false)-Number(a.featured||false));
 let visibleArtworks = artworks;
 let currentArtwork = 0;
 const lightbox = document.querySelector('#lightbox');
 function showArtwork(index) {
+  if (!visibleArtworks.length) return;
   currentArtwork = (index + visibleArtworks.length) % visibleArtworks.length;
   const artwork = visibleArtworks[currentArtwork];
   document.querySelector('#lightbox-image').src = artwork.src;
@@ -78,7 +72,7 @@ function filterGallery(category) {
   visibleArtworks = category === 'All' ? artworks : artworks.filter(artwork => artwork.category === category);
   document.querySelectorAll('[data-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
   const grid = document.querySelector('#gallery-grid');
-  grid.innerHTML = visibleArtworks.length ? visibleArtworks.map((artwork, index) => `<button class="gallery-item${artwork.wide ? ' gallery-wide' : ''}" data-artwork="${index}" aria-label="View ${artwork.title}"><img src="${artwork.src}" alt="${artwork.alt}" style="object-position:${artwork.position || 'center'}" loading="lazy"><span>${artwork.category.toUpperCase()} / ${artwork.title}<b>↗</b></span></button>`).join('') : '<p class="empty-gallery">The moments are coming.<br>Official event photographs will appear here when supplied.</p>';
+  grid.innerHTML = visibleArtworks.length ? visibleArtworks.map((artwork, index) => `<button class="gallery-item${artwork.wide ? ' gallery-wide' : ''}" data-artwork="${index}" aria-label="View ${escapeHTML(artwork.title)}"><img src="${escapeHTML(artwork.src)}" alt="${escapeHTML(artwork.alt)}" style="object-position:${escapeHTML(artwork.position || 'center')}" loading="lazy" ${artwork.srcset ? `srcset="${escapeHTML(artwork.srcset)}" sizes="(max-width:700px) 88vw, 80vw"` : ''}><span>${artwork.category.toUpperCase()} / ${escapeHTML(artwork.title)}<b>↗</b></span></button>`).join('') : '<p class="empty-gallery">The moments are coming.<br>Official event photographs will appear here when supplied.</p>';
   document.dispatchEvent(new Event('vpa:gallery'));
 }
 document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => filterGallery(button.dataset.filter)));
@@ -91,14 +85,20 @@ document.querySelector('#previous-image').addEventListener('click', () => showAr
 document.querySelector('#next-image').addEventListener('click', () => showArtwork(currentArtwork + 1));
 lightbox.addEventListener('keydown', event => { if (event.key === 'ArrowLeft') showArtwork(currentArtwork - 1); if (event.key === 'ArrowRight') showArtwork(currentArtwork + 1); });
 filterGallery('All');
-const members = [
-  { name: 'Madeshwaran G', role: 'President', photo: 'madhesh.png' },
-  { name: 'Kavinnilavu B', role: 'Vice President', photo: 'kavinnilavu.png' },
-  { name: 'Sudha Bharathi', role: 'Secretary', photo: 'Sudha Bharathi.jpeg', crop: 'portrait-screenshot' },
-  { name: 'Tarun C', role: 'Joint Secretary', photo: 'tarun.jpeg' },
-  { name: 'Nikitha', role: 'Treasurer', photo: 'nekitha.jpeg' },
-  { name: 'Shrreya', role: 'Joint Treasurer', photo: 'Shreya.png' }
-];
-document.querySelector('#team-grid').innerHTML = members.map(({ name, role, photo, crop = '' }) => `<article class="team-member"><div class="portrait ${crop}"><img src="assets/${encodeURIComponent(photo)}" alt="${name}, ${role}" loading="lazy" decoding="async" width="400" height="500"></div><h3>${name}</h3><p>${role}</p></article>`).join('');
+const members = managed?.team || [];
+document.querySelector('#team-grid').innerHTML = members.map(({name,role,media,crop=''}) => `<article class="team-member"><div class="portrait ${crop==='portrait-screenshot'?'portrait-screenshot':''}"><img src="${escapeHTML(media.url)}" alt="${escapeHTML(name)}, ${escapeHTML(role)}" loading="lazy" decoding="async" width="400" height="500" ${media.srcset ? `srcset="${escapeHTML(media.srcset)}" sizes="(max-width:700px) 42vw, 28vw"` : ''}></div><h3>${escapeHTML(name)}</h3><p>${escapeHTML(role)}</p></article>`).join('');
+function applyPhoto(selector, photo) { const image=document.querySelector(selector); if(!image||!photo)return;image.src=photo.url;image.alt=photo.alt_text;if(photo.srcset){image.srcset=photo.srcset;image.sizes='(max-width:700px) 85vw, 40vw';} }
+if (managed) {
+  applyPhoto('.art-piece-music img',managed.homepage.hero);
+  applyPhoto('.art-piece-art img',managed.homepage.heroArt);
+  document.querySelector('.art-piece-art').classList.toggle('student-landscape',managed.homepage.heroArt?.filename==='art4.jpeg');
+  document.querySelector('.hero-description').textContent=managed.homepage.hero_description;
+  managed.artForms.forEach((form,index)=>{const discipline=document.querySelectorAll('.discipline')[index];applyPhoto('.'+['music','dance','fine-art'][index]+' .discipline-image img',form.media);discipline.querySelector(':scope>p').textContent=form.description;if(form.featured_event){const link=document.createElement('a');link.className='event-gallery-link';link.href=eventURL(form.featured_event);link.textContent='Featured event: '+form.featured_event.title;document.querySelector('.art-forms').append(link);}});
+  document.querySelector('.about-intro>div>p:not(.large-copy)').textContent=managed.content.about;
+  document.querySelector('.vision-mission article:first-child p').textContent=managed.content.vision;
+  const mission=document.querySelector('.vision-mission article:last-child');mission.querySelectorAll('p').forEach(p=>p.remove());managed.content.mission.split(/\n\n/).forEach(paragraph=>{const p=document.createElement('p');p.textContent=paragraph;mission.append(p);});
+  document.querySelectorAll('.social,.instagram-placeholder a').forEach(link=>link.href=managed.content.instagram);
+  document.querySelector('.instagram-placeholder small').textContent='@'+new URL(managed.content.instagram).pathname.split('/').filter(Boolean)[0];
+} else { document.querySelector('#event-list').textContent='Content is temporarily unavailable. Please reload to try again.'; }
 const observer = new IntersectionObserver(entries => entries.forEach(entry => entry.target.classList.toggle('active', entry.isIntersecting)), { rootMargin: '-25% 0px -25% 0px', threshold: .7 });
 document.querySelectorAll('.philosophy>div p').forEach(word => observer.observe(word));

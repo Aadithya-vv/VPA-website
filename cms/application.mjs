@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { openDatabase, fail, id, now, insert, update, transaction, recordActivity } from './database.mjs';
 import { configuration } from './config.mjs';
 import { seed } from './seed.mjs';
+import { addStudentArt } from './student-art.mjs';
 import { auth } from './auth.mjs';
 import { createStorage, prepareImage, storeImage } from './storage.mjs';
 import { contentSnapshot, saveEvent, saveDocument, mediaDTO, mediaExists, mediaCategories, usages, mediaPublic, text } from './content.mjs';
@@ -13,6 +14,7 @@ const noCache = (req, res, next) => { res.set('Cache-Control', 'no-store'); next
 export async function createApplication(overrides = {}) {
   const config = configuration(overrides), db = openDatabase(config.dbPath), storage = createStorage(config);
   await seed(db, config.root);
+  await addStudentArt(db, config.root);
   const app = express(), security = auth(db, config);
   app.disable('x-powered-by');
   if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
@@ -73,7 +75,7 @@ export async function createApplication(overrides = {}) {
   app.get('/admin/preview', (req, res) => res.type('html').send(template.replace('src="/content-data.js"', 'src="/content-data.js?preview=1"').replace('<body>', '<body><div class="preview-banner">PRIVATE PREVIEW · Includes saved drafts <a href="/admin">Return to Control Room</a></div>')));
   app.get('/admin/preview/events/:id', (req, res) => { const snapshot = contentSnapshot(db, true), event = snapshot.events.find(e => e.id === req.params.id); if (!event) throw fail(404, 'Event not found.'); res.type('html').send(eventPage(template, event, snapshot.gallery, true)); });
   app.get(['/admin','/admin/events','/admin/gallery','/admin/media','/admin/homepage','/admin/art-forms','/admin/content','/admin/team'], (req, res) => res.sendFile(path.join(config.root, 'admin/index.html')));
-  app.use('/admin-assets', express.static(path.join(config.root, 'admin'), { index: false, dotfiles: 'deny' }));
+  app.get('/admin-assets/:file', (req, res) => { if (!['admin.js','admin.css','login.js'].includes(req.params.file)) throw fail(404, 'Page not found.'); res.sendFile(path.join(config.root, 'admin', req.params.file)); });
   app.use('/assets', express.static(path.join(config.root, 'assets'), { index: false, dotfiles: 'deny' }));
   for (const file of ['styles.css','experience.css','experience.js','app.js','event-page.js']) app.get(`/${file}`, (req, res) => res.sendFile(path.join(config.root, file)));
   app.get('/favicon.ico', (req, res) => res.status(204).end());
