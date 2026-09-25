@@ -24,7 +24,7 @@ if (managed) managed.events.forEach(event => {
   const mapped = { ...event.design, id: event.id, slug: event.slug, title: event.title, image: image?.url, imageAlt: image?.alt_text, width: image?.width, height: image?.height, srcset: image?.srcset, type: event.event_type || event.categories.join(' + '), detail: event.short_description, featured: event.id === managed.homepage.featured_event_id || !!event.featured, gallery: managed.gallery.some(photo => photo.event_id === event.id) };
   eventData[event.status === 'COMPLETED' ? 'past' : 'upcoming'].push(mapped);
 });
-eventData.upcoming.sort((a,b) => Number(b.featured) - Number(a.featured));
+eventData.upcoming.sort((a,b) => Number(b.id === managed?.homepage.featured_event_id) - Number(a.id === managed?.homepage.featured_event_id) || Number(b.featured) - Number(a.featured));
 function renderEvents(category) {
   document.querySelector('#event-list').innerHTML = eventData[category].map(event => `<article class="event-card" data-featured="${event.featured ? 'true' : 'false'}" data-event-url="${escapeHTML(eventURL(event))}">${event.image ? `<a class="event-image" href="${escapeHTML(eventURL(event))}" aria-label="Explore ${escapeHTML(event.title)}"><img src="${escapeHTML(event.image)}" alt="${escapeHTML(event.imageAlt)}" width="${event.width}" height="${event.height}" ${event.srcset ? `srcset="${escapeHTML(event.srcset)}" sizes="(max-width:700px) 88vw, 45vw"` : ''} loading="lazy" decoding="async"><span>EXPLORE EVENT ↗</span></a>` : `<div class="event-poster ${event.style === 'workshop' ? 'workshop' : ''}"><span class="eyebrow">${escapeHTML(event.label || event.type)}</span><span class="poster-star" aria-hidden="true">✳</span><p class="poster-title">${escapeHTML(event.poster || event.title)}<em>${escapeHTML(event.sub || '')}</em></p><span class="eyebrow">${category === 'upcoming' ? 'COMING UP' : 'PAST EVENT'}</span></div>`}<div class="event-meta"><span>${escapeHTML(event.type)}</span><span>${category === 'upcoming' ? 'UPCOMING' : 'COMPLETED'}</span></div><h3><a href="${escapeHTML(eventURL(event))}">${escapeHTML(event.title)}</a></h3><p>${escapeHTML(event.detail)}</p></article>`).join('') || '<p class="empty-gallery">No events to show yet. Check back for the next announcement.</p>';
   document.querySelector('#event-list').setAttribute('aria-labelledby', `${category}-tab`);
@@ -49,7 +49,7 @@ document.querySelectorAll('[data-event-tab]').forEach(button => {
 });
 renderEvents('upcoming');
 const labels = {MUSIC:'Music',DANCE:'Dance','FINE ARTS':'Fine arts',EVENTS:'Events',GENERAL:'Events',TEAM:'Events'};
-const artworks = (managed?.gallery || []).map(item => ({ title:item.title, category:labels[item.category] || item.category, src:item.media.url, srcset:item.media.srcset, alt:item.media.alt_text, caption:item.caption, wide:!!item.wide, featured:!!item.featured, position:item.focal_position, mediaId:item.media_id }));
+const artworks = (managed?.gallery || []).map(item => ({ title:item.title, category:labels[item.category] || item.category, src:item.media.url, srcset:item.media.srcset, alt:item.media.alt_text, caption:item.caption, wide:!!item.wide, featured:!!item.featured, position:item.focal_position, placeholder:item.media.mime_type === 'image/svg+xml', mediaId:item.media_id }));
 if (managed) managed.artForms.forEach(form => form.gallery.forEach(photo => { if (!artworks.some(item=>item.mediaId===photo.id)) artworks.push({ title:photo.alt_text, category:labels[form.category], src:photo.url, srcset:photo.srcset, alt:photo.alt_text, caption:'VPA · '+labels[form.category], mediaId:photo.id }); }));
 artworks.sort((a,b)=>Number(b.featured||false)-Number(a.featured||false));
 let visibleArtworks = artworks;
@@ -62,8 +62,8 @@ function showArtwork(index) {
   document.querySelector('#lightbox-image').src = artwork.src;
   document.querySelector('#lightbox-image').alt = artwork.alt;
   document.querySelector('#lightbox-title').textContent = artwork.title;
-  document.querySelector('.lightbox-info .eyebrow').textContent = artwork.src.endsWith('.svg') ? 'VPA / VISUAL STUDIES' : 'VPA / ON STAGE';
-  document.querySelector('.lightbox-info p:last-child').textContent = artwork.caption || (artwork.src.endsWith('.svg') ? 'Original artwork placeholder · club photography coming soon.' : artwork.category === 'Events' ? 'Euphony’26 · Freshers SIP Culturals' : 'Music · Visual Performance and Arts Club');
+  document.querySelector('.lightbox-info .eyebrow').textContent = artwork.placeholder ? 'VPA / VISUAL STUDIES' : 'VPA / ' + artwork.category.toUpperCase();
+  document.querySelector('.lightbox-info p:last-child').textContent = artwork.caption || (artwork.placeholder ? 'Artistic placeholder' : artwork.category + ' ? Visual Performance and Arts Club');
   document.querySelector('#previous-image').hidden = visibleArtworks.length < 2;
   document.querySelector('#next-image').hidden = visibleArtworks.length < 2;
   document.dispatchEvent(new Event('vpa:photo'));

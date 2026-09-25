@@ -2,19 +2,25 @@ const page = document.querySelector('#page'), feedback = document.querySelector(
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
 const categories = ['MUSIC','DANCE','FINE ARTS','GENERAL'], photoCategories = [...categories,'EVENTS','TEAM'];
 let csrf = '', dirty = false, busy = false, media = [], events = [], gallery = [];
-const notice = (message, error = false) => { feedback.textContent = message; feedback.classList.toggle('error', error); };
+let sessionExpired = false;
+const notice = (message, error = false) => {
+  feedback.textContent = message; feedback.classList.toggle('error', error);
+  if (sessionExpired) {
+    const link = document.createElement('a'); link.id = 'sign-in-again'; link.href = '/admin/login'; link.target = '_blank'; link.rel = 'noopener'; link.textContent = ' Sign in again in another tab'; feedback.append(link);
+  }
+};
 async function api(url, options = {}) {
   const response = await fetch(url, { ...options, headers: { ...(options.body instanceof FormData ? {} : { 'Content-Type':'application/json' }), 'X-CSRF-Token':csrf, ...options.headers } });
   const data = await response.json();
-  if (response.status === 401) { notice('Your session expired. Your editor is still here. Sign in in another tab, then retry saving.', true); if (!document.querySelector('#sign-in-again')) { const link = document.createElement('a'); link.id = 'sign-in-again'; link.href = '/admin/login'; link.target = '_blank'; link.textContent = ' Sign in again ↗'; feedback.append(link); } throw new Error(data.message); }
+  if (response.status === 401) { sessionExpired = true; notice('Your session expired. Your editor is still here. Sign in in another tab, then retry saving.', true); if (!document.querySelector('#sign-in-again')) { const link = document.createElement('a'); link.id = 'sign-in-again'; link.href = '/admin/login'; link.target = '_blank'; link.textContent = ' Sign in again ↗'; feedback.append(link); } throw new Error(data.message); }
   if (!response.ok) throw new Error(data.message + (data.used_in?.length ? ` Used in: ${data.used_in.join(', ')}` : ''));
   return data;
 }
-async function refreshSession() { const session = await api('/api/admin/session'); csrf = session.csrf; document.querySelector('#signed-in').textContent = `Signed in as ${session.username}`; }
+async function refreshSession() { const session = await api('/api/admin/session'); csrf = session.csrf; sessionExpired = false; document.querySelector('#signed-in').textContent = `Signed in as ${session.username}`; }
 async function operation(work, message = 'Saving…') {
-  if (busy) return; busy = true; const buttons = [...document.querySelectorAll('#page button')]; buttons.forEach(button => button.disabled = true); notice(message);
+  if (busy) return; busy = true; const buttons = [...document.querySelectorAll('#page button')].map(button => [button, button.disabled]); buttons.forEach(([button]) => button.disabled = true); notice(message);
   try { await refreshSession(); await work(); } catch (error) { notice(error.message || 'Could not connect. Please try again.',true); }
-  finally { busy = false; buttons.filter(button => button.isConnected).forEach(button => button.disabled = false); }
+  finally { busy = false; buttons.filter(([button]) => button.isConnected).forEach(([button, disabled]) => button.disabled = disabled); }
 }
 const json = data => JSON.stringify(data);
 const field = (label,name,value='',type='text',extra='') => `<label>${escape(label)}<input name="${name}" type="${type}" value="${escape(value)}" ${extra}></label>`;
