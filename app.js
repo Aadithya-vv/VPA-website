@@ -16,8 +16,7 @@ document.addEventListener('keydown', (event) => {
 matchMedia('(min-width: 701px)').addEventListener('change', (event) => { if (event.matches) closeMenu(); });
 const managed = window.VPA_CONTENT;
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
-const previewMode = location.pathname.startsWith('/admin/preview');
-function eventURL(event) { return previewMode ? '/admin/preview/events/' + event.id : '/events/' + event.slug; }
+function eventURL(event) { return '/events/' + event.slug; }
 const eventData = { upcoming: [], past: [] };
 if (managed) managed.events.forEach(event => {
   const image = event.poster || event.cover;
