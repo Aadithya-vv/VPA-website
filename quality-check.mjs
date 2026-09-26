@@ -19,7 +19,7 @@ async function key(key, code = key) { const windowsVirtualKeyCode = { Escape: 27
 try {
   await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable'); await send('Page.bringToFront');
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.qualityMetrics={shifts:0,longTasks:[]};new PerformanceObserver(list=>list.getEntries().forEach(e=>{if(!e.hadRecentInput)qualityMetrics.shifts+=e.value})).observe({type:'layout-shift',buffered:true});new PerformanceObserver(list=>list.getEntries().forEach(e=>qualityMetrics.longTasks.push(Math.round(e.duration)))).observe({type:'longtask',buffered:true});` });
-  await send('Page.navigate', { url: 'http://127.0.0.1:5173' }); await wait(600);
+  await send('Page.navigate', { url: process.env.CHECK_ORIGIN || 'http://127.0.0.1:5173' }); await wait(600);
   await evaluate(`sessionStorage.clear()`);
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });

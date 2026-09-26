@@ -2,6 +2,12 @@
 
 The existing public website and private **VPA Control Room** share database-managed content. The HTML/CSS/vanilla JavaScript design, animations, supplied photos, event layouts and gallery lightbox are preserved. Art 4 is the opening hero artwork; Arts 1?3 appear in Fine Arts. The Treasurer is Nekitha.
 
+## Static Render deployment
+
+Run `npm run build` and publish `dist/` on the existing Render Static Site. This exports all supplied public content, images and six event pages without a backend. It excludes admin routes, accounts and database files. Static content is rebuilt from the repository; local CMS edits are not automatically published to a Static Site.
+
+Use `npm run build:server` for a separate Node deployment bundle in `server-dist/`. The following admin instructions apply to the local or hosted Node server.
+
 ## Run locally and create your account
 
 Requires **Node.js 24.12 or newer** (uses the built-in SQLite module).
@@ -74,10 +80,10 @@ Stable media IDs connect placements to files. Replacement keeps the ID; delivery
 
 ## Deploy and back up
 
-This is a **Node server application**, not a static-only deployment. GitHub Pages cannot host its CMS.
+The **CMS** requires a Node server. The public site also supports a standalone static export.
 
 1. Choose a Node 24.12+ host with one application instance and persistent disk. Provision the domain/HTTPS reverse proxy. SQLite on a shared network drive or multiple independent replicas is not supported by this deployment design.
-2. Run `npm ci`, `npm run check`, `npm test`, and `npm run build`. The `dist/` server bundle includes the public site, backend, admin and supplied assets. Run `npm ci --omit=dev` inside the deployed bundle.
+2. Run `npm ci`, `npm run check`, `npm test`, and `npm run build:server`. The `server-dist/` server bundle includes the public site, backend, admin and supplied assets. Run `npm ci --omit=dev` inside the deployed bundle.
 3. Mount persistent storage outside the replaceable release directory. Set production environment variables, exact HTTPS origin, database/media paths and `HOST=0.0.0.0`. For S3, create a private bucket and server credentials limited to the required object access.
 4. Set `PERSISTENT_DATA_CONFIRMED=true` after verifying the mounts survive redeploys. Configure `TRUST_PROXY` only for the actual trusted proxy topology.
 5. Run `npm run admin:create` in the deployment environment, using the production database path. Start using `npm start` under the host's process supervisor. Visit `/admin` over HTTPS and verify uploads survive restart/redeploy.

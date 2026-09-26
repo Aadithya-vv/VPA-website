@@ -1,25 +1,26 @@
-﻿{
-    "name":  "vpa-website",
-    "version":  "1.0.0",
-    "private":  true,
-    "type":  "module",
-    "scripts":  {
-                    "dev":  "node --env-file-if-exists=.env server.mjs",
-                    "start":  "node --env-file-if-exists=.env server.mjs",
-                    "check":  "node scripts/check.mjs",
-                    "build":  "node build.mjs",
-                    "test":  "node --test tests/cms.test.mjs",
-                    "admin:create":  "node --env-file-if-exists=.env scripts/admin-account.mjs",
-                    "admin:reset":  "node --env-file-if-exists=.env scripts/admin-account.mjs --reset"
-                },
-    "dependencies":  {
-                         "@aws-sdk/client-s3":  "^3.1139.0",
-                         "bcryptjs":  "^3.0.3",
-                         "express":  "^5.2.1",
-                         "multer":  "^2.4.0",
-                         "sharp":  "^0.35.4"
-                     },
-    "engines":  {
-                    "node":  "\u003e=24.12.0"
-                }
+{
+  "name": "vpa-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server.mjs",
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "check": "node scripts/check.mjs",
+    "build": "node build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "admin:create": "node --env-file-if-exists=.env scripts/admin-account.mjs",
+    "admin:reset": "node --env-file-if-exists=.env scripts/admin-account.mjs --reset",
+    "build:server": "node build.mjs --server"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1139.0",
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "multer": "^2.4.0",
+    "sharp": "^0.35.4"
+  },
+  "engines": {
+    "node": ">=24.12.0"
+  }
 }
