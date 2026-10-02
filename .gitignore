@@ -1,6 +1,7 @@
 dist/
 server-dist/
 node_modules/
+.image-tools/
 *.log
 .env
 .env.*

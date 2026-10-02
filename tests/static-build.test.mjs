@@ -8,7 +8,7 @@ test('Static Render build includes public content without private server files',
   execFileSync(process.execPath,['build.mjs']);
   const context={window:{}};vm.runInNewContext(await readFile('dist/content-data.js','utf8'),context);
   const data=context.window.VPA_CONTENT;
-  assert.equal(data.events.length,6);assert.equal(data.gallery.length,11);assert.equal(data.team.length,6);
+  assert.equal(data.events.length,6);assert.equal(data.gallery.length,15);assert.equal(data.team.length,6);
   assert.equal(data.homepage.heroArt.filename,'art4.jpeg');assert.ok(data.team.some(member=>member.name==='Nekitha'));
   const images=[];
   function walk(value){if(!value||typeof value!=='object')return;if(value.url)images.push(value.url);Object.values(value).forEach(walk);}

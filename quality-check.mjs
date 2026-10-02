@@ -40,11 +40,17 @@ try {
   assert.equal(await evaluate(`document.querySelector('.art-forms').dataset.active`), 'Dance');
   await evaluate(`document.querySelector('.fine-art').focus()`);
   assert.equal(await evaluate(`document.querySelector('.art-forms').dataset.active`), 'Fine arts');
+  for (const clue of ['sound','movement','canvas']) {
+    await evaluate(`document.querySelector('[data-clue="${clue}"]').click()`);
+    assert.equal(await evaluate(`document.querySelector('.next-act').dataset.reveal`),clue);
+    assert.equal(await evaluate(`document.querySelectorAll('[data-clue][aria-pressed=true]').length`),1);
+    assert.ok(await evaluate(`document.querySelector('.next-act-message h4').textContent.length>0`));
+  }
   await evaluate(`document.querySelector('#past-tab').click()`);
-  assert.equal(await evaluate(`document.querySelectorAll('.event-card').length`), 3);
+  assert.equal(await evaluate(`document.querySelectorAll('.event-card').length`), 5);
   await evaluate(`document.querySelector('#past-tab').focus()`); await key('ArrowLeft');
   assert.equal(await evaluate(`document.activeElement.id`), 'upcoming-tab');
-  assert.equal(await evaluate(`document.querySelectorAll('.spotlight').length`), 1);
+  assert.equal(await evaluate(`document.querySelectorAll('.spotlight').length`), 0);
   await evaluate(`document.querySelector('[data-filter="Music"]').click(); document.querySelector('.gallery-item').focus(); document.querySelector('.gallery-item').click()`);
   assert.equal(await evaluate(`document.querySelector('#lightbox').open`), true);
   const first = await evaluate(`document.querySelector('#lightbox-image').src`);
